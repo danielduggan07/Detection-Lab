@@ -8,3 +8,17 @@
 - Downloaded Windows 11. This is what runs inside my CLIENT01 VM. It's the "employee workstation" of my mini network. In a real company, this would represent someones actual laptop/desktop thats joined to the company domain. This matters because this is the VM where the actual attack gets launched from, aiming at the test accounts sitting on DC01. It's also where I'll do my baseline logins - logging in, entering a wrong password - since that's the everyday activity a real employee's machine generates.  
 
 - Downloaded Ubuntu server. This is the OS for SPLUNK01 (the machine thatll run SPLUNK, my SIEM). Ubuntu is used here because Splunk runs great on Linux, Linux servers are lighter on resources than Windows ones, and using a different OS for the SIEM mirrors how a real company keeps it security tooling on separate, dedicated infrastructure rather than crammed into the same box its monitoring. This VM is the "security camera room". DC01 and CLIENT01 will both forward their Windows event logs here (via the Splunk Universal Forwarder), and this is where I'll search through that data, spot the password spray pattern, and build my detection rule. Without this machine, I'll have logs sitting on the domain controller with nobody watching them. 
+
+- Here I will document the network name. The reason I need to have a network name is because every VM I build will need to reference this exact name to join the same private network. The network name I'll go for is "detectionlab"
+
+- Here I will log the IP scheme. This is so when I'm deep in Windows Server's network settings, I can just look back here and type it in. 
+- IP Plan: 
+   - DC01: 192.168.56.10
+   - CLIENT01: 192.168.56.20
+   - SPLUNK01: 192.168.56.30
+
+- Here I will note which VM's get temporary internet access. 
+   - DC01: stays internal network only from the start (installing from local ISO, no internet needed)
+   - CLIENT01: may get temporary NAT adapter if an attack tool needs downloading
+   - SPLUNK01: gets temporary second NAT adapter (needs internet for Splunk install + apt updates)
+- All temporary NAT adapters get disabled before attack simulation
