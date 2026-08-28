@@ -1,4 +1,6 @@
 # Day 1:
+- Phase 1:
+
 - Confirmed VT-x enabled, set up GitHub repo and cloned into VS Code
 
 - Installed VirtualBox. This is because this project needs 3 separate "computers", a Domain Controller, a Windows client, and a Splunk server, all networked together. Also, safety is a reason. I plan on running an actual password-spray attack tool, and I don't want that running on my real everyday laptop. 
@@ -22,3 +24,14 @@
    - CLIENT01: may get temporary NAT adapter if an attack tool needs downloading
    - SPLUNK01: gets temporary second NAT adapter (needs internet for Splunk install + apt updates)
 - All temporary NAT adapters get disabled before attack simulation
+
+
+- Phase 2: 
+
+- Created DC01 VM:
+   - 4096 MB RAM, 2 CPUs, 60GB dynamically allocated VDI disk, attached Windows Server evaluation ISO.
+   - Chose 4GB RAM because its a comfortable minimum for a Domain Controller running Active Directory. 
+   - Used a dynamically allocated disk so it only takes up real storage as data is actually added, rather than reserving 60GB upfront
+   - Set DC01's network adapter to Internal Network, named "detectionlab". This is the moment the isolated lab network actually gets created in VirtualBox. It doesnt exist until a VM references it by name. DC01 has no NAT/internet adapter at all, since it installs entirely from the local ISO and never needs to reach the internet.
+   - Issue: faced a small issue when attempting to choose Internal Network. VirtualBox's Network settings dropdown only showed 2 of the available adapter types (NAT, Bridged Adapter). This was potentially a display/rendering bug in the VirtualBox GUI rather than a config mistake. 
+   - Fix: used VirtualBox's command line to set the adapter directly. Typed "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "DC01" --nic1 intnet --intnet1 detectionlab`, then reopened DC01's settings and confirmed Internal Network (detectionlab) showed correctly. 
