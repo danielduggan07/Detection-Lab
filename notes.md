@@ -35,3 +35,16 @@
    - Set DC01's network adapter to Internal Network, named "detectionlab". This is the moment the isolated lab network actually gets created in VirtualBox. It doesnt exist until a VM references it by name. DC01 has no NAT/internet adapter at all, since it installs entirely from the local ISO and never needs to reach the internet.
    - Issue: faced a small issue when attempting to choose Internal Network. VirtualBox's Network settings dropdown only showed 2 of the available adapter types (NAT, Bridged Adapter). This was potentially a display/rendering bug in the VirtualBox GUI rather than a config mistake. 
    - Fix: used VirtualBox's command line to set the adapter directly. Typed "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "DC01" --nic1 intnet --intnet1 detectionlab`, then reopened DC01's settings and confirmed Internal Network (detectionlab) showed correctly. 
+
+
+   # Day 2
+
+   - Booted DC01 and began the Windows Server Installation. I chose the Desktop Experience because its more useful while learning. Real production servers often use Core instead, to save resources and reduce attack surface.
+
+   - Issue: partway through, got a prompt saying setup detected an upgrade and booted from install media, asking whether to continue the upgrade or do a clean install. This happened because Windows automatically reboots partway through installation to continue setup, and the VM booted from the install ISO again instead of the partially installed hard disk, landing back on the installer screen. Selected "No" (clean install).
+
+   - Continued into disk selection screen again, but this time it showed 3 partitions (EFI, Recovery, and a 59GB main partition already showing used space) rather than one block of unallocated space. This confirms the installation had already progressed once before
+
+   - Fix: shut down DC01, restarted it, and this time did not press a key at the "boot from CD/DVD" prompt, letting it boot from the hard disk instead of the install disc. This correctly resumed installation setup. 
+
+   - Set the built-in Administrator password. Logged into DC01 for first time. Landed in Server Manager, the default tool that opens on Windows Server login, used for managing roles and features. Installed VirtualBox Guest Additions inside DC01. This enables proper mouse integration, automatic display resizing, and shared clipboard. This was done just to make my experience better since I'll spend many hours inside these VM's. 
