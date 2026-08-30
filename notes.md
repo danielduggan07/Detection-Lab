@@ -50,3 +50,13 @@
    - Set the built-in Administrator password. Logged into DC01 for first time. Landed in Server Manager, the default tool that opens on Windows Server login, used for managing roles and features. Installed VirtualBox Guest Additions inside DC01. This enables proper mouse integration, automatic display resizing, and shared clipboard. This was done just to make my experience better since I'll spend many hours inside these VM's. 
 
    - Assigned DC01 a static IP address (192.168.56.10). Subnet mask (255.255.255.0). Default gateway left blank, because a gateway would point to a router providing access to other networks/the internet, and the isolated Internal Network deliberately has no router, so theres nothing to point to. Preferred DNS server (192.168.56.10), same as DC01 address because I will be promoting DC01 to a Domain Controller which will make it the DNS server for the whole lab. Verified with 'ipconfig' in Command Prompt - confirmed IPv4 address and Subnet Mask.
+
+   - Promoted DC01 to a Domain Controller, creating a new forest and domain, "lab.local". This is the step that activates AD DS. Without this, theres no domain for CLIENT01 to join and no central authority managing accounts. 
+
+   - Installed AD DS role via Server Manager > Add Roles and Features, then ran the promotion wizard. Chose "add a new forest" (since nothing exists yet in this environment), and named the domain 'lab.local'. Set a DSRM (Directory Services Restore Mode) password. This promotion is also what makes DC01 the domain's DNS server - confirms why the static IP + DNS pointing at itself setup had to happen first, in that order. 
+
+   - Issue: right after installing the AD DS role, clicking "promote to domain controller" gave an error saying role change status couldnt be determined, suggesting a restart was needed. 
+
+   - Fix: restarted DC01, which let the role installation fully settle. Promotion then worked normally. 
+
+   - DC01's sidebar in Server Manager now shows AD DS, DNS, and File and Storage Services. Opened Active Directory Users and Computers and confirmed 'lab.local' appears as an active domain with default containers. 
