@@ -31,8 +31,12 @@
 - Created DC01 VM:
    - 4096 MB RAM, 2 CPUs, 60GB dynamically allocated VDI disk, attached Windows Server evaluation ISO.
    - Chose 4GB RAM because its a comfortable minimum for a Domain Controller running Active Directory. 
-   - Used a dynamically allocated disk so it only takes up real storage as data is actually added, rather than reserving 60GB upfront
+   - Used a dynamically allocated disk so it only takes up real storage as data is actually added, rather than reserving 60GB upfront. 
+   ![DC01 VM Settings](screenshots/01-DC01-VM-Settings.png)
+
    - Set DC01's network adapter to Internal Network, named "detectionlab". This is the moment the isolated lab network actually gets created in VirtualBox. It doesnt exist until a VM references it by name. DC01 has no NAT/internet adapter at all, since it installs entirely from the local ISO and never needs to reach the internet.
+   ![DC01 Network Config](screenshots/02-DC01-Network-Config.png)
+
    - Issue: faced a small issue when attempting to choose Internal Network. VirtualBox's Network settings dropdown only showed 2 of the available adapter types (NAT, Bridged Adapter). This was potentially a display/rendering bug in the VirtualBox GUI rather than a config mistake. 
    - Fix: used VirtualBox's command line to set the adapter directly. Typed "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "DC01" --nic1 intnet --intnet1 detectionlab`, then reopened DC01's settings and confirmed Internal Network (detectionlab) showed correctly. 
 
@@ -50,8 +54,10 @@
    - Set the built-in Administrator password. Logged into DC01 for first time. Landed in Server Manager, the default tool that opens on Windows Server login, used for managing roles and features. Installed VirtualBox Guest Additions inside DC01. This enables proper mouse integration, automatic display resizing, and shared clipboard. This was done just to make my experience better since I'll spend many hours inside these VM's. 
 
    - Assigned DC01 a static IP address (192.168.56.10). Subnet mask (255.255.255.0). Default gateway left blank, because a gateway would point to a router providing access to other networks/the internet, and the isolated Internal Network deliberately has no router, so theres nothing to point to. Preferred DNS server (192.168.56.10), same as DC01 address because I will be promoting DC01 to a Domain Controller which will make it the DNS server for the whole lab. Verified with 'ipconfig' in Command Prompt - confirmed IPv4 address and Subnet Mask.
+   ![alt text](<screenshots/Static IP.png>)
 
    - Promoted DC01 to a Domain Controller, creating a new forest and domain, "lab.local". This is the step that activates AD DS. Without this, theres no domain for CLIENT01 to join and no central authority managing accounts. 
+
 
    - Installed AD DS role via Server Manager > Add Roles and Features, then ran the promotion wizard. Chose "add a new forest" (since nothing exists yet in this environment), and named the domain 'lab.local'. Set a DSRM (Directory Services Restore Mode) password. This promotion is also what makes DC01 the domain's DNS server - confirms why the static IP + DNS pointing at itself setup had to happen first, in that order. 
 
@@ -60,3 +66,5 @@
    - Fix: restarted DC01, which let the role installation fully settle. Promotion then worked normally. 
 
    - DC01's sidebar in Server Manager now shows AD DS, DNS, and File and Storage Services. Opened Active Directory Users and Computers and confirmed 'lab.local' appears as an active domain with default containers. 
+   ![alt text](<screenshots/Domain Controller Promotion Worked.png>)
+   ![alt text](<screenshots/Domain Exists.png>)
