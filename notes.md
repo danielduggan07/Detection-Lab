@@ -68,3 +68,10 @@
    - DC01's sidebar in Server Manager now shows AD DS, DNS, and File and Storage Services. Opened Active Directory Users and Computers and confirmed 'lab.local' appears as an active domain with default containers. 
    ![alt text](<screenshots/Domain Controller Promotion Worked.png>)
    ![alt text](<screenshots/Domain Exists.png>)
+
+   # Day 3
+
+   - Created 7 test user accounts in ADUC inside the default Users container within lab.local. These accounts exist so the later password spray attack has a realistic population to target. Password spraying works by trying a few common password across many accounts, so multiple accounts are needed to meaningfully distinguish normal activity from an attack later. 
+   ![alt text](<screenshots/Added Users.png>)
+
+   - Took DC01's VM snapshot, named "Domain Controller Working". It captures AD DS running, DNS configured, static IP set, and all 7 test accounts created. This is a rollback checkpoint, so just in case if anything breaks later, DC01 can be restored to exactly this state instead of rebuilding from scratch.
