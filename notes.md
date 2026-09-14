@@ -100,5 +100,10 @@
 
    - Result: CLIENT01 now running Windows 11 Home with a local account.  
 
+   - Assigned CLIENT01's static IP: 192.168.56.20, subnet mask 255.255.255.0, default gateway blank. Unlike DC01, set Preferred DNS server to 192.168.56.10 (DC01's address), not CLIENT01's own. CLIENT01 doesn't run any DNS service itself, so it needs to ask DC01 whenever it needs to resolve a name like lab.local.
+   ![alt text](<screenshots/Assign CLIENT01's static IP.png>)
+
+   
+
 
  
