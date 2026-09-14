@@ -75,3 +75,30 @@
    ![alt text](<screenshots/Added Users.png>)
 
    - Took DC01's VM snapshot, named "Domain Controller Working". It captures AD DS running, DNS configured, static IP set, and all 7 test accounts created. This is a rollback checkpoint, so just in case if anything breaks later, DC01 can be restored to exactly this state instead of rebuilding from scratch.
+
+   # Day 4
+
+   - Created CLIENT01 VM: selected Windows 11 (64-bit) ISO directly in the creation wizard (unlike DC01, where the ISO was attached separately afterward). Allocated 4096 MB RAM, 2 CPUs, 60GB dynamically-allocated disk. Ticked "Use EFI", which is required for Windows 11, unlike DC01/Windows Server which could use legacy BIOS-style boot. 
+
+   - Left "Proceed with Unattended Installation" unticked deliberately, so the Windows 11 install could be done manually, since I needed control over this to handle Microsoft account bypass later, which an automated unattended install could have skipped past incorrectly. 
+
+   - Issue: same VirtualBox Network dropdown rendering bug as DC01, Internal Network option not selectable. 
+
+   Fix: same VBoxManage command-line workaround, targeting CLIENT01 this time: &"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "CLIENT01" --nic1 intnet --intnet1 detectionlab
+
+   - Added a second network adapter (NAT) for temporary internet access, per the network plan. Needed in case attack tools require downloading onto CLIENT01 later on. 
+
+   - Issue: CLIENT01 showed a persistent black screen on boot with no error message after starting the Windows 11 install. Ruled out several causes one at a time: ISO not attached (confirmed attached), boot order (irrelevant with EFI enabled), Secure Boot (tried disabling, no change), host-side Hyper-V/Core Isolation conflicts (checked, not the cause), VirtualBox being outdated (was latest version).
+
+   - Fix: changed Graphics Controller from VBoxSVGA to VMSVGA. This resolved the black screen, a known incompatibility between VBoxSVGA and this specific EFI + very recent Windows 11 build combination. 
+
+   - Issue: Windows 11 setup forced a "Sign in with Microsoft" screen with no visible way to create a local account instead, even after fully disconnecting CLIENT01's network, the network screen only offered to "Install driver" (a dead end since no real adapter/driver exists) rather than showing the expected "I dont have internet" link. 
+
+   - Fix: Pressing Fn+Shift+F10 opened the hidden command prompt, I ran oobe\bypassnro, which restarted the setup flow and made the "I dont have internet" option available, leading to a local account creation instead of a Microsoft account. 
+
+   - Re-enabled both network adapters in CLIENT01's settings, as they were disabled to force the offline setup path during the bypass. 
+
+   - Result: CLIENT01 now running Windows 11 Home with a local account.  
+
+
+ 
