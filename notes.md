@@ -84,7 +84,7 @@
 
    - Issue: same VirtualBox Network dropdown rendering bug as DC01, Internal Network option not selectable. 
 
-   Fix: same VBoxManage command-line workaround, targeting CLIENT01 this time: &"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "CLIENT01" --nic1 intnet --intnet1 detectionlab
+   - Fix: same VBoxManage command-line workaround, targeting CLIENT01 this time: &"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyvm "CLIENT01" --nic1 intnet --intnet1 detectionlab
 
    - Added a second network adapter (NAT) for temporary internet access, per the network plan. Needed in case attack tools require downloading onto CLIENT01 later on. 
 
