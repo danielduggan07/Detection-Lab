@@ -103,6 +103,55 @@
    - Assigned CLIENT01's static IP: 192.168.56.20, subnet mask 255.255.255.0, default gateway blank. Unlike DC01, set Preferred DNS server to 192.168.56.10 (DC01's address), not CLIENT01's own. CLIENT01 doesn't run any DNS service itself, so it needs to ask DC01 whenever it needs to resolve a name like lab.local.
    ![alt text](<screenshots/Assign CLIENT01's static IP.png>)
 
+   # Day 5
+
+   - Phase 3: CLIENT01 domain job (major troubleshooting) 
+
+   - Issue: attempting to join CLIENT01 to lab.local failed immediately. System Properties showed "You cannot join a computer running this edition of Windows 10 to a domain", with the Domain option greyed out entirely. Root cause: Windows 11 Home doesn't support domain-joining at all. This is a hard Microsoft licensing restriction (Pro/Enterprise/Education only), not a bug or misconfiguration. Traced back to the install ISO defaulting to Home edition since no product key was entered during setup.
+   ![alt text](screenshots/VirtualBox_CLIENT01_14_09_2026_21_19_24.png)
+
+   - Attempted Fix 1: switch edition in-place via Settings > System > Activation > Change Product Key, using Microsoft's public generic Windows Pro setup key (VK7JG-NPHTM-C97JM-9MPGT-3V66T), a legitimate, publicly documented key used for edition-switching, not a piracy workaround. It failed. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_14_09_2026_21_24_13.png)
+
+   - Attempted Fix 2: "slmgr /ipk <key>" via elevated Command Prompt (bypasses the Settings UI). Also failed with the same underlying activation error. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_14_09_2026_21_27_06.png)
+
+   - Attempted Fix 3: DISM/Online/Set-Edition:Professional /ProductKey:<key>. Failed with "Setting an edition is not supported with online images" error. DISM's Set-Edition only works against an offline image, not a live running OS. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_14_09_2026_21_32_05.png)
+
+   - Attempted Fix 4: booted into Windows Recovery Environment to run DISM against the drive as a genuinely offline image. Had to locate the correct drive letter first (WinRE reassigns them -D: turned out to be the Guest Additions CD, not Windows; C: was correct, confirmed via "dir C:\Windows"). Hit an error 5023: "The specified offline image has not been generalised. Run sysprep /generalise." Since sysprep would reset most of CLIENT01's existing configuration anyway (similar cost to reinstalling), decided to stop pursuing in place conversion entirely. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_14_09_2026_21_45_59.png)
+
+   - Decision: reinstall Windows 11 from scratch, entering the Pro-associated generic key at the initial product key screen during setup, so Pro installs correctly from the start. 
+
+   - Issue: after powering off and restarting CLIENT01 to reinstall, it booted straight back into the existing (old, Home) installation rather than the installer, since EFI firmware prioritises an existing "Windows Boot Manager" entry over the optical drive. Fix: used the EFI Boot Manager menu directly (pressed Esc repeatedly at boot) and manually selected the CD-ROM entry. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_15_09_2026_13_56_08.png)
+
+   - Issue: the CD-ROM boot entry initially failed instantly (black flash, back to menu). Turned out the optical drive had VBoxGuestAdditions.iso attached (left over from installing Guest Additions earlier), not the Windows 11 ISO, and a second attempt had added the Windows ISO as a separate drive rather than replacing it, leaving two ambiguous CD-ROM entries.
+   
+   - Decision: rather than continue untangling boot menu ambiguity and partition state left over from multiple partial install attempts, detached the existing CLIENT01.vdi entirely and created a brand new, genuinely blank 60GB virtual disk, removing the Guest Additions ISO so only the Windows 11 ISO remained attached. This gave a clean slate with no conflicting boot entries. 
+
+   - Reinstalled Windows 11, this time entering the Pro key at the product screen. Confirmed working and later confirmed via a Pro-exclusive setup screen. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_15_09_2026_14_17_27.png)
+
+   - Issue: the offline/local account bypass (Fn+Shift+F10, oobe\bypassnro) appeared not to work this time, looping back to the same Microsoft sign-in screen after restart. Cause: this install had a genuinely working NAT internet connection (unlike the first install, where networking had been fully disabled). bypassnro removes the online requirement, but with real internet present Windows still defaults to the sign in flow rather than offering an offline path. Fix: disabled both network adapters via the VM's Devices menu, which forced the "I dont have internet" option to appear. Succesfully created a local account.
+
+   - Re-enabled both network adapters, reinstalled Guest Additions, reassigned the static IP (192.168.56.20, DNS pointed at DC01), confirmed via "ipconfig" after identifying the correct adapter by MAC address. 
+
+   - Confirmed Windows 11 Pro via Settings. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_16_09_2026_12_34_19.png)
+
+   - Domain join: System Properties > Change > Domain > lab.local. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_16_09_2026_12_55_20.png)
+
+   - Verified the join two ways: logged into CLIENT01 using domain accounts (LAB\Administrator and LMessi) rather than the local account. Successful login confirms CLIENT01 is genuinely asking DC01 to authenticate, not checking a local account list. Also confirmed on DC01's side, in AD UC. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_16_09_2026_13_03_22.png)
+   ![alt text](screenshots/VirtualBox_DC01_16_09_2026_13_07_18.png)
+
+
+
+
+
    
 
 
