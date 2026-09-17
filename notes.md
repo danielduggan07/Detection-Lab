@@ -148,6 +148,14 @@
    ![alt text](screenshots/VirtualBox_CLIENT01_16_09_2026_13_03_22.png)
    ![alt text](screenshots/VirtualBox_DC01_16_09_2026_13_07_18.png)
 
+   # Day 6 - Building SPLUNK01 
+
+   - Created SPLUNK01 VM: Linux type, Ubuntu OS Distribution, Ubuntu 25.04 (Plucky Puffin) (64-bit) OS Version. 4096MB, 2 CPU's, 50GB dynamically allocated disk slightly less space than DC01 and CLIENT01, since Ubuntu and SPLUNK need less base space.
+
+   - Set up dual network adapters, same pattern as CLIENT01: Adapter 1 = Internal Network (detectionlab) for the isolated lab network, Adapter 2 = NAT for temporary internet access (downloading Ubuntu updates and the Splunk installer). Adapter 2 will be disabled before the attack simulation. 
+
+
+
 
 
 
