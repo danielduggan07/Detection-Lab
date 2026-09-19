@@ -154,6 +154,22 @@
 
    - Set up dual network adapters, same pattern as CLIENT01: Adapter 1 = Internal Network (detectionlab) for the isolated lab network, Adapter 2 = NAT for temporary internet access (downloading Ubuntu updates and the Splunk installer). Adapter 2 will be disabled before the attack simulation. 
 
+   # Day 7 - Ubuntu Install and static IP
+
+   - Set hostname to "splunk01" (lowercase in Linux since unlike Windows case insensitive naming), created a personal user account (not root, Ubuntu Server discourages direct root login, using sudo instead for admin commands).
+
+   - Installed OpenSSH server (ticked during setup). Allows remote terminal access to SPLUNK01 later, useful since theres no desktop and commands will otherwise need typing directly in the VM window.
+
+   - Rebooted into the installed system successfully. Verified with "hostname" (correctly returned splunk01) and "ip a" (showed enp0s3 with no IP yet, enp0s8 auto-assigned 10.0.3.15 via NAT/DHCP as expected).
+
+   - Assigned SPLUNK01's static IP via netplan (Ubuntu's network configuration system). Config lives in /etc/netplan/ as a YAML file. 
+
+   - Checked "ls /etc/netplan/" and found actual filename was "00-installer-config.yaml". Edited file, setting enp0s3 (the detectionlab adapter) to a static address (192.168.56.30/24) with a DNS pointed at DC01 (192.168.56.10) leaving enp0s8 (NAT) untouched on DHCP. 
+
+   - Confirmed via "ip a" that enp0s3 now shows 192.168.56.30/24 correctly. 
+
+   - Verified connectivity to DC01 by doing "ping 192.168.56.10", confirming SPLUNK01 can reach DC01 across the detectionlab network. 
+
 
 
 
