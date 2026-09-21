@@ -157,18 +157,23 @@
    # Day 7 - Ubuntu Install and static IP
 
    - Set hostname to "splunk01" (lowercase in Linux since unlike Windows case insensitive naming), created a personal user account (not root, Ubuntu Server discourages direct root login, using sudo instead for admin commands).
+   ![alt text](screenshots/VirtualBox_SPLUNK01_17_09_2026_17_29_36.png)
 
    - Installed OpenSSH server (ticked during setup). Allows remote terminal access to SPLUNK01 later, useful since theres no desktop and commands will otherwise need typing directly in the VM window.
 
    - Rebooted into the installed system successfully. Verified with "hostname" (correctly returned splunk01) and "ip a" (showed enp0s3 with no IP yet, enp0s8 auto-assigned 10.0.3.15 via NAT/DHCP as expected).
+   ![alt text](screenshots/VirtualBox_SPLUNK01_19_09_2026_22_45_51.png)
 
    - Assigned SPLUNK01's static IP via netplan (Ubuntu's network configuration system). Config lives in /etc/netplan/ as a YAML file. 
 
    - Checked "ls /etc/netplan/" and found actual filename was "00-installer-config.yaml". Edited file, setting enp0s3 (the detectionlab adapter) to a static address (192.168.56.30/24) with a DNS pointed at DC01 (192.168.56.10) leaving enp0s8 (NAT) untouched on DHCP. 
+   ![alt text](screenshots/VirtualBox_SPLUNK01_19_09_2026_22_58_52.png)
 
    - Confirmed via "ip a" that enp0s3 now shows 192.168.56.30/24 correctly. 
+   ![alt text](screenshots/VirtualBox_SPLUNK01_19_09_2026_23_04_40.png)
 
    - Verified connectivity to DC01 by doing "ping 192.168.56.10", confirming SPLUNK01 can reach DC01 across the detectionlab network. 
+   ![alt text](screenshots/VirtualBox_SPLUNK01_19_09_2026_23_08_30.png)
 
 
 
