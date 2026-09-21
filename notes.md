@@ -197,6 +197,40 @@
    ![alt text](<screenshots/Screenshot 2026-09-21 114935.png>)
    ![alt text](<screenshots/Screenshot 2026-09-21 115110.png>)
 
+   # Day 8 (continuation)- Installing Universal Forwarder on DC01
+
+   - Downloaded the Splunk Universal Forwarder (Splunks small, separate piece of software whose only job is watching logs on the machine its installed on and forwarding copies to SPLUNK01). 
+   ![alt text](screenshots/VirtualBox_DC01_21_09_2026_14_28_20.png)
+
+   - Set up a VirtualBox Shared Folder (DC01 Settings > Shared Folders, pointed at the hosts Downloads folder, read only) to get the .msi file into DC01. Appeared inside DC01 as a network drive (Z:), avoiding the isolated network transfer problem entirely for this file type. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 212810.png>)
+
+   - Installed the Universal Forwarder inside DC01: created dedicated service credentials (username: DanielSplunkUF), skipped Deployment Server config (not needed for 2 forwarders), configured the Receiving Indexer as 192.168.56.30:9997 (SPLUNK01's IP, port 9997 - Splunks standard forwarder receiving port, separate from port 8000 used for the web dashboard).
+   ![alt text](<screenshots/Screenshot 2026-09-21 145838.png>)
+
+   - Issue: after install, "index=windows" search on SPLUNK01 returned 0 events, despite the Forwarder showing as installed and configured. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 150303.png>)
+
+   - Diagnosis step 1: confirmed via Test-NetConnection on DC01 that port 9997 was reachable (TcpTestSucceeded: True), and "sudo ufw status" on SPLUNK01 showed the firewall inactive - ruled out network/firewall as the cause. 
+   ![alt text](screenshots/VirtualBox_DC01_21_09_2026_15_05_31.png) 
+   ![alt text](<screenshots/Screenshot 2026-09-21 150707.png>)
+
+   - Root cause found: SPLUNK01 was never explicitly configured to receive forwarded data at all - creating the index only creates storage, it doesnt open a listening port. Fixed via Settings > Forwarding and receiving > Configure receiving > New Receiving Port > 9997 on SPLUNK01. 
+
+   - Second issue found: even after receiving was enabled, still 0 events in index=windows. Discovered the Forwarder also needs an explicit "data input" telling it what to actually watch and forward (a separate configuration step from telling it where to send data). Created "inputs.conf" in "C:\Program Files\SplunkUniversalForwarder\etc\system\local\" with a "[WinEventLog://Security]" stanza to specifically monitor the Windows Security event log.
+   ![alt text](screenshots/VirtualBox_DC01_21_09_2026_20_35_24.png)
+
+   - Third issue found: "index=*" search confirmed 5000+ events were arriving from DC01 successfully, but all landing in Splunks default "main" index rather than the intended "windows" index, meaning "index=windows" legitimately returned 0 despite forwarding actually working. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 205605.png>)
+
+   - Root cause: inputs.conf had been typed as a single line in Notepad (silly me), rather than 3 separate lines. Splunks .conf format requires each stanza header and key=value pair on its own line, so "index=windows" was never being parsed as a distinct setting, only "disabled=false" took effect. Now, rewrote inputs.conf as 3 separate lines, saved, restarted SplunkForwarder service. 
+   ![alt text](screenshots/VirtualBox_DC01_21_09_2026_21_01_23.png)
+
+   - Verified: "index=windows" in Splunks Search & Reporting now correctly shows real events from DC01, full chain confirmed working end to end, from DC01's Security log through to a searchable index on SPLUNK01. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 210348.png>)
+
+
+
 
 
 
