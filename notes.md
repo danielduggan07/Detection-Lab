@@ -175,6 +175,28 @@
    - Verified connectivity to DC01 by doing "ping 192.168.56.10", confirming SPLUNK01 can reach DC01 across the detectionlab network. 
    ![alt text](screenshots/VirtualBox_SPLUNK01_19_09_2026_23_08_30.png)
 
+   # Day 8 - Installing Splunk Enterprise on SPLUNK01
+
+   - Downloaded Splunk Enterprise (60 day full trial, converts to permanently free tier with a 500MB/day ingest cap afterward) directly onto SPLUNK01 using "wget" with the download link copied from splunk.com, rather than downloading on the host and transferring the file accross. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 113030.png>)
+
+   - Connected to SPLUNK01 via SSH, from a normal PowerShell window on the host laptop. This is why OpenSSH was installed during Ubuntu setup. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 112832.png>)
+
+   - Issue: SSH to SPLUNK01's direct IP (192.168.56.30) timed out. Root cause: "detectionlab" is a VirtualBox Internal Network, which is deliberately isolated not just from the internet but from the host laptop itself. Only VM's on that network can reach each other, the host has no presence on it at all. 
+
+   - Fix: set up NAT port forwarding on SPLUNK01's Adapter 2 (the existing temporary NAT adapter) - host port 2222 -> guest port 22 (SSH), and host port 8000 -> guest port 8000 (added proactively, anticipating the same host cant reach Internal Network issue would otherwise block access to Splunks web dashboard later too). Connected successfully via "ssh daniel@127.0.0.1 -p 2222". 
+   ![alt text](<screenshots/Screenshot 2026-09-21 112601.png>)
+
+   - Installed Splunk via "sudo dpkg -i splunk-10.4.3-4174a2deda5d-linux-amd64.deb". Installed cleanly into /opt/splunk. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 114622.png>)
+
+   - Started Splunk for the first time. sudo /opt/splunk/bin/splunk start --accept-license. Got a deprecation notice requiring explicit confirmation to run as root - re-ran with --run-as-root added, which proceeded normally. Created the Splunk web admin account (username: DanielSplunk) when prompted. 
+
+   - Confirmed Splunk running: accessed the web interface at  http://127.0.0.1:8000 (via the port forward) from the host browser, logged in successfully with the Splunk admin account, and had a first successful look at Splunk's actual dashboard. 
+   ![alt text](<screenshots/Screenshot 2026-09-21 114935.png>)
+   ![alt text](<screenshots/Screenshot 2026-09-21 115110.png>)
+
 
 
 
