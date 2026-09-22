@@ -240,6 +240,23 @@
 
    - Took "Splunk logging working" snapshots across all 3 VM's. 
 
+   # Verifying Windows Audit Policy
+
+   - Checked DC01s Logon audit setting via Local Security Policy (secpol.msc > Advanced Audit Policy Configuration > Logon/Logoff > Audit Logon). Showed "Not Configured" with Success/Failure unticked. Did not change this, since DC01 is a Domain Controller and is primarily governed by domain level Group Policy (Default Domain Controllers Policy), which overrides local policy. 
+   ![alt text](screenshots/VirtualBox_DC01_22_09_2026_13_18_06.png)
+
+   - Used "auditpol /get /subcategory:Logon", run from an elevated Command Prompt, instead, which shows the real, currently effective audit setting regardless of which policy layer (local vs domain) is providing it. Confirmed on DC01:Logon = Success and Failure. No changes needed, the domain level policy already had this correctly configured by default. 
+   ![alt text](screenshots/VirtualBox_DC01_22_09_2026_13_24_17.png)
+
+   - Ran same auditpol check on CLIENT01, confirmed Success and Failure already enabled by default. No changes needed on either machine. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_22_09_2026_13_25_57.png)
+
+   - Generated one deliberate failed login (wrong password) and one successful login on CLIENT01, then confirmed both appeared correctly in Splunk:EventCode=4625 and 4624. 
+   ![alt text](<screenshots/Screenshot 2026-09-22 133833.png>)
+   ![alt text](<screenshots/Screenshot 2026-09-22 133408.png>)
+
+   - Audit policy verified as correctly configured (via effective policy, not just local settings) on both DC01 and CLIENT01, with end to end proof via a real generated success/failure pair confirmed in Splunk.
+
 
 
 
