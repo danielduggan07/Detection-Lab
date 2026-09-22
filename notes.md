@@ -229,6 +229,17 @@
    - Verified: "index=windows" in Splunks Search & Reporting now correctly shows real events from DC01, full chain confirmed working end to end, from DC01's Security log through to a searchable index on SPLUNK01. 
    ![alt text](<screenshots/Screenshot 2026-09-21 210348.png>)
 
+   # Day 9 - Installing Universal Forwarder on CLIENT01
+
+   - Installed the Universal Forwarder on CLIENT01, reusing the same .msi already downloaded to the host laptop from DC01's setup. Used the same VirtualBox Shared Folder approach to transfer the installer. 
+
+   - Configured the installer the same way as DC01: dedicated service credentials, skipped Deployment Server, set Receiving Indexer to 192.168.56.30:9997 (same SPLUNK01 destination both forwarders send to).
+
+   - Created inputs.conf file, same way as DC01. Verified in Splunks Search & Reporting with "index=windows | stats count by host" - confirmed two distinct hosts now present: CLIENT01 and WIN-2U5EUPPQBPR (DC01s actual Windows computer name).
+   ![alt text](<screenshots/Screenshot 2026-09-22 125833.png>)
+
+   - Took "Splunk logging working" snapshots across all 3 VM's. 
+
 
 
 
