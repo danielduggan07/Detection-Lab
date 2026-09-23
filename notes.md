@@ -258,6 +258,29 @@
    - Audit policy verified as correctly configured (via effective policy, not just local settings) on both DC01 and CLIENT01, with end to end proof via a real generated success/failure pair confirmed in Splunk.
 
 
+   # Day 10 - Capture Authentication Baseline on CLIENT01
+
+   - Generated the full set of planned baseline authentication activity on CLIENT01:
+      - Successful login (LMessi)
+      - One deliberate wrong password attempt, then correct login
+      - Logins as 3 more test users (SAbrar, CRonaldo, KMbappe)
+      - Workstation lock/unlock (Win+L)
+      - Administrator Login
+   
+   - Verified in Splunk with "index=windows host=CLIENT01 (EventCode=4624 OR EventCode=4625 OR EventCode=4800 OR EventCode=4801) | table _time, EventCode, Account_Name". Confirmed 4624 (success) and 4625 (failure) events for all the above, but 4800/4801 (lock/unlock) were absent despite pressing Win+L.
+   ![alt text](<screenshots/Screenshot 2026-09-23 102330.png>)
+   ![alt text](<screenshots/Screenshot 2026-09-23 102346.png>)
+
+   - Investigated: checked the specific audit subcategory governing lock/unlock events using "auditpol /get /subcategory:"Other Logon/Logoff Events"auditpol /get /subcategory:"Other Logon/Logoff Events"", which confirmed "No Auditing". This is a different subcategory from Logon (which governs 4624/4625 and was verified as enabled previously). Audit policy is controlled independently per subcategory, so one being enabled doesnt mean others are. This subcategory had simply never been checked or enabled. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_23_09_2026_10_33_10.png)
+
+   - Fix: enabled it directly with "auditpol /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:enable". Re ran the lock/unlock test, and this time 4800 and 4801 appeared correctly in Splunk.
+   ![alt text](screenshots/VirtualBox_CLIENT01_23_09_2026_10_35_06.png)
+   ![alt text](<screenshots/Screenshot 2026-09-23 103700.png>)
+
+   - All 5 categories (success, one accidental failure, multiple users, lock/unlock, admin login) confirmed present and correctly categorised in Splunk. 
+
+
 
 
 
