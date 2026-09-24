@@ -281,6 +281,34 @@
    - All 5 categories (success, one accidental failure, multiple users, lock/unlock, admin login) confirmed present and correctly categorised in Splunk. 
 
 
+   # Day 11 - Simulate the Password Spray Attack
+
+   - Corrected the original plans NAT-disabling step: rather than disabling NAT on both CLIENT01 and SPLUNK01 before the attack, only disabled it on CLIENT01 (the machine actually launching attack traffic). Left SPLUNK01s NAT adapter enabled deliberately, since the existing SSH/Splunk-web port forwards run through it and disabling it would have cut off host access to Splunk with no real security benefit (SPLUNK01 isnt the one generating attack traffic).
+
+   - Built the password spray tool as a Powershell script (spray.ps1) rather than CrackMapExec/Hydra, since those are Linux-native tools that would need extra setup on a Windows only, now offline CLIENT01. Script uses .NET's PrincipalContext.ValidateCredentials to directly check username/password pairs against the domain. 7 test accounts x 3 common guessed passwords, looped password-first/account-second (spray shaped: one password tried across everyone before moving to the next).
+   ![alt text](screenshots/VirtualBox_CLIENT01_24_09_2026_10_40_43.png)
+
+   - Issue: PowerShell's Execution Policy blocked the script entirely on first genuine attempt ("running scripts is disabled on this system"). Fixed with "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass". Scoped to the current session only, reverts automatically on window close, no permanent security getting changed. 
+   ![alt text](screenshots/VirtualBox_CLIENT01_23_09_2026_14_16_12.png)
+
+   - Script ran successfully. All results correctly returned False, as expected for guessed passwords against real accounts.
+   ![alt text](screenshots/VirtualBox_CLIENT01_23_09_2026_14_20_13.png)
+
+   - Issue: searching "index=windows host=CLIENT01 EventCode=4625" in Splunk initially returned nothing, despite the script visibly running successfully. Investigated assuming a time-range/clock-drift problem first (VMs had been paused/resumed multiple times during the disk-space incident), but broadening the search revealed the real cause: the 4625 events were landing on host=WIN-2U5EUPPQBPR (DC01's actual Windows computer name), not CLIENT01.
+   ![alt text](<screenshots/Screenshot 2026-09-23 142631.png>)
+   ![alt text](<screenshots/Screenshot 2026-09-24 101348.png>)
+
+   - Root cause: ValidateCredentials performs real domain authentication, and in Active Directory, the Domain Controller, not the requesting client, is the machine that makes the final authentication decision and writes the resulting Security event. CLIENT01 initiated the checks and DC01 is what correctly logged them. Searching only host=CLIENT01 was scoped incorrectly from the start. 
+
+   - Confirmed final attack dataset: "index=windows EventCode=4625 host=WIN-2U5EUPPQBPR earliest="09/23/2026:13:00:00" latest="09/23/2026:13:30:00" | stats count by Account_Name". Exactly 42 events (6 per account across all 7 test accounts, matching two complete script runs x 3 passwords each), all within a ~2 minute window. Genuine, clean password-spray-shaped data: many accounts, few passwords, tight timing.
+   ![alt text](<screenshots/Screenshot 2026-09-24 101752.png>)
+
+   - Phase complete. No re-run needed. The attack simulation worked correctly the first time. The "missing data" was a search-scope mistake, not an attack or forwarding failure.
+
+
+
+
+
 
 
 
