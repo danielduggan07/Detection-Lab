@@ -4,7 +4,13 @@ A home lab project simulating a real Active Directory environment, forwarding it
 
 ## Overview 
 
-This project demonstrates the full lifecycle of a SOC analyst's core workflow: building the infrastructure to generate security telemetry, understand what normal activity looks like, simulating a real attack technique, and building a detection whose threshold is justified by directly observed data rather than a guessed or textbook figure. 
+This project is a self contained home lab that simulates a small corporate Active Directory environment, complete with a Domain Controller, a domain-joined workstation, and a dedicated SIEM collecting and indexing security telemetry from both. On top of that environment, it simulates a real, well known attack technique, a password spray. It also builds a working detection rule capable of correctly identifying it.
+
+This project was built to demonstrate the practical. hands on skills expected of a SOC analyst: standing up and correctly configuring Active Directory infrastructure, understanding and verifying Windows' audit and logging behaviour, forwarding logs reliably into a SIEM, distinguishing genuine malicious activity from ordinary background noise, and critically justifying a detection's threshold with real, observed data rather than an assumed or copied number.
+
+Rather than following a written tutorial step by step, this build involved genuine independent troubleshooting throughout: diagnosing why audit settings weren't taking effect, tracing missing log data back to an incorrect assumption about where Active Directory actually records authentication decisions, and correcting a subtle Splunk field-extraction issue that was silently skewing the detection's numbers. Each of these is documented in full in the (['Documentation.md'](Documentation.md)) file, alongside the reasoning behind every major decision made along the way. 
+
+The end result is a fully working detection pipeline: a real attack was executed against the lab, its behaviour was measured and compared directly against a baseline of ordinary activity, and a detection threshold was chosen and validated using that comparison. Then, deployed as a live, scheduled Splunk alert, exactly as it would function in a genuine security operations environment. 
 
 ## Tech Stack 
 
