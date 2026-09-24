@@ -305,6 +305,32 @@
 
    - Phase complete. No re-run needed. The attack simulation worked correctly the first time. The "missing data" was a search-scope mistake, not an attack or forwarding failure.
 
+   # Building the Data Driven Detection
+
+   - Measured the baselines natural failed logon rate: "index=windows EventCode=4625 host=WIN-2U5EUPPQBPR OR host=CLIENT01 | bucket _time span=1m | stats count by _time" across last 7 days. Baseline minutes each showed exactly 1 failed logon, matching the single deliberate wrong password tests from previous phases. Attack minutes (Sep 23, 13:18-13:20) showed 21/3/18, an obvious, large gap from baseline. 
+   ![alt text](<screenshots/Screenshot 2026-09-24 111319.png>)
+
+   - Refined the measurement to count distinct accounts, not just raw event count (the more meaningful dimension. One account repeatedly failing is very different from many different accounts failing.) Initial attempt using "dc(Account_Name)" gave confusing numbers (baseline showing 2 distinct accounts for a single failure; attack showing 8 when 7 test accounts exist).
+   ![alt text](<screenshots/Screenshot 2026-09-24 111514.png>)
+
+   - Investigated by inspecting a raw event directly rather than continuing to guess from aggregated stats. Found that Windows 4625 event actually contains 2 separate "Account Name" fields in its raw text, one for the "Subject" (who initiated, typically blank) and one under "Account For Which Logon Failed" (the real target account). Splunks automatic field extraction merges both under one field name (Account_Name), inflating any dc() count by including both values. 
+   ![alt text](<screenshots/Screenshot 2026-09-24 111804.png>)
+
+   - Fix: used "eval real_account=mvindex(Account_Name, -1)" to specifically isolate the last value in the field (consistently the real target account), then ran dc() on that instead. Corrected numbers: baseline = 1 distinct account/minute, attack = 7 distinct accounts/minute (matching exactly the 7 test accounts).
+   ![alt text](<screenshots/Screenshot 2026-09-24 111909.png>)
+
+   - Chose detection threshold: 3+ distinct accounts failing to log in within a 1 minute window. Reasoning: sits comfortably above the observed baseline maximum (1), while sitting well below the actual attacks signal (7), giving genuine margin in both directions, based on real measured data rather than an assumed number. 
+
+   - Built and tested the detection query: "index=windows EventCode=4625 (host=WIN-2U5EUPPQBPR OR host=CLIENT01) | eval real_account=mvindex(Account_Name, -1) | bucket _time span=1m | stats dc(real_account) as distinct_accounts, count as total_failures by _time | where distinct_accounts >= 3". Result: exactly 3 rows returned, all 3 genuine attack minutes (13:18, 13:19, 13:20 on Sep 23), zero false positives on any baseline minute. Detection confirmed working correctly end to end.
+   ![alt text](<screenshots/Screenshot 2026-09-24 112048.png>)
+
+   - Saved the query as a live Splunk alert. Confirmed saved and enabled.
+   ![alt text](<screenshots/Screenshot 2026-09-24 112730.png>)
+   ![alt text](<screenshots/Screenshot 2026-09-24 112744.png>)
+
+   - Phase complete: a real, working, data-justified detection rule now exists, built from directly observed baseline vs attack behavior rather than an assumed threshold, and running live as a scheduled Splunk alert.  
+   ![alt text](<screenshots/Screenshot 2026-09-24 112815.png>)
+
 
 
 
