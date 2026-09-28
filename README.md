@@ -59,7 +59,7 @@ DC01 and CLIENT01 each run the Splunk Universal Forwarder, sending Windows Secur
  - Phase 7: Password spray attack simulation (Powershell + .NET credential validation)
  - Phase 8: Data driven detection, built, tested, deployed as a live Splunk alert
 
- This whole process was documented in the "Documentation Progress.md" file, including troubleshooting issues and fixes, as well as screenshots. 
+ This whole process was documented in the (['Documentation.md'](Documentation.md)) file, including troubleshooting issues and fixes, as well as screenshots. 
 
 
  ## The Detection
@@ -68,7 +68,7 @@ DC01 and CLIENT01 each run the Splunk Universal Forwarder, sending Windows Secur
 
  **Why this number?:** measured directly from this lab's own data. Baseline activity never exceeded 1 distinct account failing per minute; the simulated attack produced 7. The threshold sits with genuine margin above observed normal noise and well below the actual attack signal.
 
- Below is my actual detection query itself, the literal Splunk search I built and tested. It looks at failed logon events from either machine, then extracts just the real target account name (fixing that dual-field issue I found), then groups the results into 1 minute time windows. For each minute, count distinct accounts and total failures, and only keep minutes where 3+ different accounts failed.
+ Below is my actual detection query itself, the literal Splunk search I built and tested. It looks at failed logon events from either machine, then extracts just the real target account name, then groups the results into 1 minute time windows. For each minute, count distinct accounts and total failures, and only keep minutes where 3+ different accounts failed.
 
  ```spl
  index=windows EventCode=4625 (host=WIN-2U5EUPPQBPR OR host=CLIENT01)
@@ -102,7 +102,7 @@ Tested against both datasets: returns zero results during baseline activity, and
  - Diagnosed why Domain Controller audit policy appeared "Not Configured" locally despite events genuinely being logged. Domain-level Group Policy overrides local settings, and 'auditpol' shows the true effective policy. 
  - Traced a missing set of lock/unlock events to an entirely separate, independently controlled audit subcategory ("Other Logon/Logoff Events")
  - Discovered that credential validation attempts from a client machine are logged by the Domain Controller, not the client itself. This is an architectural fact of how AD authentication works. 
- - Identified and corrected a Splunk field-extraction quirk (Windows 4625 events contain two merged "Account Name" values) that was silently inflating distinct-account counts. 
+ - Identified and corrected a Splunk field-extraction quirk: Windows 4625 events contain 2 separate "Account Name" values merged into one field (the initiating "Subject" account, typically blank, and the actual targeted account). This was silently inflating distinct-account counts until isolated using "mvindex()" to extract the correct value. 
 
 
 
