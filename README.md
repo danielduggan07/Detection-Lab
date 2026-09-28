@@ -78,6 +78,24 @@ DC01 and CLIENT01 each run the Splunk Universal Forwarder, sending Windows Secur
 Tested against both datasets: returns zero results during baseline activity, and correctly identifies all 3 minutes of the actual attack, with no false positives. 
 
 
+## Relevant Screenshots
+ - The 7 test accounts created in Active Directory Users and Computers, representing the population targeted by the simulated password spray.
+ ![alt text](screenshots/VirtualBox_DC01_28_09_2026_10_45_44.png)
+
+ - The PowerShell spray script in progress, testing 3 common passwords against all 7 accounts using .NET's "ValidateCredentials" method. Every result returns "False", since the guessed passwords dont match any real account, which is exactly the expected behavior of a genuine spray attempt.
+ ![alt text](screenshots/VirtualBox_CLIENT01_23_09_2026_14_20_13.png)
+
+ - The detection query returns exactly 3 results. The 3 minutes the attack actually occured, with zero false positives across any baseline activity. Each row shows 3 or more distinct accounts failing to authenticate within a single minute, the threshold chosen from this labs own measured baseline data.  
+ ![alt text](<screenshots/Screenshot 2026-09-24 112048.png>)
+
+ - The detection saved as a live, scheduled Splunk alert, running automatically every 5 minutes against a rolling window. Not just a manual search, but an operational detection. 
+ ![alt text](<screenshots/Screenshot 2026-09-24 112815.png>)
+
+ - Confirms both DC01 ("WIN-2U5EUPPQBPR") and CLIENT01 are successfully forwarding Windows Security Event Log data into the dedicated "windows" index. 
+ ![alt text](<screenshots/Screenshot 2026-09-22 125833.png>)
+
+
+
 ## Challenges and Lessons Learned
  - Diagnosed why Domain Controller audit policy appeared "Not Configured" locally despite events genuinely being logged. Domain-level Group Policy overrides local settings, and 'auditpol' shows the true effective policy. 
  - Traced a missing set of lock/unlock events to an entirely separate, independently controlled audit subcategory ("Other Logon/Logoff Events")
