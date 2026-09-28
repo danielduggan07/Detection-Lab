@@ -39,12 +39,14 @@ DC01 and CLIENT01 each run the Splunk Universal Forwarder, sending Windows Secur
 
 
 ## Objectives 
- - Stand up a functioning Active Directory environment from scratch
- - Configure and verify Windows audit policy for authentication events
- - Forward logs from multiple hosts into a SIEM
- - Establish a real, observed baseline of normal authentication activity
- - Simulate a genuine password spray attack
- - Build a detection with a threshold justified by data, not assumption
+ - Design and build a multi-VM Active Directory environment from scratch, including domain controller promotion and a domain-joined workstation.
+ - Configure an isolated network architecture appropiate for hosting real attack tooling.
+ - Verify Windows audit policy at the effective (not just local) level, ensuring the right authentication events are actually being logged. 
+ - Deploy a SIEM and forward logs from multiple hosts into a dedicated, searchable index.
+ - Establish a real, observed baseline of normal authentication behavior, rather than assuming what "normal" looks like.
+ - Simulate a genuine password spray attack and capture its actual behavior in the logs
+ - Build a detection whose threshold is justified by measured data, comparing baseline against attack, rather than an assumed or copied figure. 
+ - Deploy the detection as a live, scheduled Splunk alert, not just a one-off search
 
 
 ## Build Summary 
